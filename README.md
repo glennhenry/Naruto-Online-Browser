@@ -2,10 +2,11 @@
 
 Unofficial solution to play Naruto Online in browser which works on most platforms.
 
-- Download for Windows 32-bit: ...
-- Download for Windows 64-bit: ...
-- Download for MacOS: ...
-- Download for Linux: ...
+- Download for Windows 32-bit: [118 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/v1.0.0/Naruto.Online.Browser-win32.zip)
+- Download for Windows 64-bit: [125 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/v1.0.0/Naruto.Online.Browser-win32-x64.zip)
+- Download for macOS ARM 64: [268 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/v1.0.0/Naruto.Online.Browser-darwin-arm64.zip)
+- Download for macOS 64-bit: [260 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/v1.0.0/Naruto.Online.Browser-darwin-x64.zip)
+- Download for Linux 64-bit: [111 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/v1.0.0/Naruto.Online.Browser-linux-x64.zip)
 
 The app is minimal wrapper around an older Chromium build that still supports Flash content. It is not a full browser — its only purpose is to open and run the Naruto Online webpage.
 
