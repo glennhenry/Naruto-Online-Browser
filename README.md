@@ -2,6 +2,10 @@
 
 Unofficial solution to play Naruto Online in browser which works on most platforms.
 
+![serverlist page](./1.png)
+
+![gameplay](./2.png)
+
 - Download for Windows 32-bit: [118 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/v1.0.0/Naruto.Online.Browser-win32.zip)
 - Download for Windows 64-bit: [125 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/v1.0.0/Naruto.Online.Browser-win32-x64.zip)
 - Download for macOS ARM 64: [268 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/v1.0.0/Naruto.Online.Browser-darwin-arm64.zip)
