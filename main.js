@@ -4,7 +4,7 @@ const {
   Menu,
   MenuItem,
   session,
-  dialog,
+  dialog
 } = require("electron");
 const path = require("path");
 
@@ -140,6 +140,8 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
 
+let appMenu;
+
 function initializeBrowserMenu() {
   const template = [
     {
@@ -186,10 +188,26 @@ function initializeBrowserMenu() {
         },
       ],
     },
+    {
+      label: "Audio",
+      submenu: [
+        {
+          id: "muteWindow",
+          label: "Mute",
+          type: "checkbox",
+          click: (menuItem, focusedWindow) => {
+            if (!focusedWindow || focusedWindow.isDestroyed()) return;
+            const newMuted = !focusedWindow.webContents.isAudioMuted();
+            focusedWindow.webContents.setAudioMuted(newMuted);
+            menuItem.checked = newMuted;
+          },
+        },
+      ],
+    },
   ];
 
-  const menu = Menu.buildFromTemplate(template);
-  const helpMenuItem = menu.getMenuItemById("helpMenu");
+  appMenu = Menu.buildFromTemplate(template);
+  const helpMenuItem = appMenu.getMenuItemById("helpMenu");
   const devToolsMenuItem = new MenuItem({
     label: "Toggle Developer Tools",
     click: () => {
@@ -201,7 +219,33 @@ function initializeBrowserMenu() {
     helpMenuItem.submenu.append(devToolsMenuItem);
   }
 
-  Menu.setApplicationMenu(menu);
+  Menu.setApplicationMenu(appMenu);
+
+  const muteItem = appMenu.getMenuItemById("muteWindow");
+
+  app.on("browser-window-focus", (_, window) => {
+    if (!muteItem) return;
+    if (window && !window.isDestroyed()) {
+      muteItem.checked = !!window.webContents.isAudioMuted();
+    } else {
+      muteItem.checked = false;
+    }
+  });
+
+  app.on("browser-window-created", (_, window) => {
+    window.on("focus", () => {
+      if (appMenu)
+        appMenu.getMenuItemById("muteWindow").checked =
+          window.webContents.isAudioMuted();
+    });
+    window.on("closed", () => {
+      const focused = BrowserWindow.getFocusedWindow();
+      if (appMenu)
+        appMenu.getMenuItemById("muteWindow").checked = focused
+          ? focused.webContents.isAudioMuted()
+          : false;
+    });
+  });
 }
 
 function clearHTTPCache() {
