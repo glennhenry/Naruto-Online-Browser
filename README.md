@@ -20,7 +20,7 @@ It's intended to be the “last resort” solution to play Naruto Online if noth
 - Not on Windows (mini client unavailable)
 - Couldn't find any other Flash browser.
 
-Based on an old [Electron](https://www.electronjs.org/) build (v11.5) which uses Chromium v87.0.4280.141, it works similar to another [FlashBrowser](https://github.com/radubirsan/FlashBrowser).
+Based on an old [Electron](https://www.electronjs.org/) build (v11.5) which uses Chromium v87.0.4280.141. It works similar to the official mini client (both based on Chromium) and the [FlashBrowser](https://github.com/radubirsan/FlashBrowser) (which uses Electron too).
 
 ### Limitations
 
@@ -31,5 +31,6 @@ Based on an old [Electron](https://www.electronjs.org/) build (v11.5) which uses
 
 ### Features
 
-- Lightweight: It only loads Naruto Online webpage and that's it.
-- Mute: You can mute the game per-window (no volume slider).
+- Lightweight: It only loads the Naruto Online webpage.
+- Mute: You can mute the game per-window.
+- DevTools: Developer console is enabled with `Ctrl/Cmd+I` (for debugging or HTTP capture)
