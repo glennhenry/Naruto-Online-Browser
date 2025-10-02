@@ -8,9 +8,14 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package:win32": "electron-packager . \"Naruto Online Browser\" --platform=win32 --arch=ia32 --out=release --overwrite --asar --icon=resources/logo.ico --extra-resource=resources/pepflashplayer32.dll",
+    "package:win64": "electron-packager . \"Naruto Online Browser\" --platform=win32 --arch=x64 --out=release --overwrite --asar --icon=resources/logo.ico --extra-resource=resources/pepflashplayer64.dll",
+    "package:mac": "electron-packager . \"Naruto Online Browser\" --platform=darwin --arch=x64,arm64 --out=release --overwrite --asar --icon=resources/logo.icns --extra-resources=resources/PepperFlashPlayer.plugin",
+    "package:linux": "electron-packager . \"Naruto Online Browser\" --platform=linux --arch=x64 --out=release --overwrite --asar --icon=resources/logo.png --extra-resources=resources/libpepflashplayer.so"
   },
   "devDependencies": {
+    "@electron/packager": "^18.4.4",
     "electron": "^11.5.0"
   }
 }

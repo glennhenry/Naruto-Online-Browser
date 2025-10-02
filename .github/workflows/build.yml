@@ -1,0 +1,38 @@
+name: Build Electron App
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        arch: [x64, ia32]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 22
+      - run: npm install
+
+      - name: Build package
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" && "${{ matrix.arch }}" == "ia32" ]]; then
+            npm run package:win32
+          elif [[ "${{ matrix.os }}" == "windows-latest" && "${{ matrix.arch }}" == "x64" ]]; then
+            npm run package:win64
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            npm run package:mac
+          elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            npm run package:linux
+          fi
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }}-${{ matrix.arch }}
+          path: release/
