@@ -188,11 +188,11 @@ function initializeBrowserMenu() {
       label: "Clean",
       submenu: [
         {
-          label: "Clear HTTP Cache (basic)",
+          label: "Clear HTTP Cache (you will re-download game resources like images and animation)",
           click: () => clearHTTPCache(),
         },
         {
-          label: "Clear All Cache and Storage (THIS WILL REFRESH THE BROWSER!)",
+          label: "Clear Storage Data (e.g., cookie, local storage, indexed DB; typically the game do not use many storage) (THIS WILL REFRESH THE BROWSER!)",
           click: () => clearAllCache(),
         },
       ],
@@ -266,7 +266,7 @@ function clearHTTPCache() {
   }
 }
 
-function clearAllCache() {
+function clearStorageData() {
   try {
     session.defaultSession.clearStorageData();
     console.log("Storage data cleared.");
