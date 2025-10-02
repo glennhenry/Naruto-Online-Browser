@@ -34,17 +34,21 @@ jobs:
           node-version: 22
       - run: npm install
 
-      - name: Build package
-        run: |
-          if [[ "${{ matrix.os }}" == "windows-latest" && "${{ matrix.arch }}" == "ia32" ]]; then
-            npm run package:win32
-          elif [[ "${{ matrix.os }}" == "windows-latest" && "${{ matrix.arch }}" == "x64" ]]; then
-            npm run package:win64
-          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            npm run package:mac
-          elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            npm run package:linux
-          fi
+      - name: Build Windows 32-bit
+        if: matrix.os == 'windows-latest' && matrix.arch == 'ia32'
+        run: npm run package:win32
+
+      - name: Build Windows 64-bit
+        if: matrix.os == 'windows-latest' && matrix.arch == 'x64'
+        run: npm run package:win64
+
+      - name: Build macOS
+        if: matrix.os == 'macos-latest'
+        run: npm run package:mac
+
+      - name: Build Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: npm run package:linux
 
       - uses: actions/upload-artifact@v4
         with:
