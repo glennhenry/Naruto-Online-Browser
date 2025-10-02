@@ -11,11 +11,25 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
-        arch: [x64, ia32]
+        include:
+          - os: windows-latest
+            arch: ia32
+            script: package:win32
+          - os: windows-latest
+            arch: x64
+            script: package:win64
+          - os: macos-latest
+            arch: x64
+            script: package:mac
+          - os: macos-latest
+            arch: arm64
+            script: package:mac
+          - os: ubuntu-latest
+            arch: x64
+            script: package:linux
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
       - run: npm install
@@ -32,7 +46,7 @@ jobs:
             npm run package:linux
           fi
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}-${{ matrix.arch }}
           path: release/

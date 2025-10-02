@@ -1,5 +1,6 @@
 # custom
 release/
+.vscode/
 
 # Logs
 logs

@@ -26,11 +26,15 @@ switch (process.platform) {
     break;
 }
 
-const isPackaged = app.isPackaged;
+let pluginDir;
 
-const pluginPath = isPackaged
-  ? path.join(process.resourcesPath, pluginName)
-  : path.join(__dirname, pluginName);
+if (app.isPackaged) {
+  pluginDir = process.resourcesPath;
+} else {
+  pluginDir = path.join(__dirname, "resources");
+}
+
+const pluginPath = path.join(pluginDir, pluginName);
 
 if (pluginName) {
   app.commandLine.appendSwitch("ppapi-flash-path", pluginPath);
