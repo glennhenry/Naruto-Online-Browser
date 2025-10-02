@@ -1,6 +1,7 @@
 name: Build Electron App
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -20,10 +21,10 @@ jobs:
             script: package:win64
           - os: macos-latest
             arch: x64
-            script: package:mac
+            script: package:mac:x64
           - os: macos-latest
             arch: arm64
-            script: package:mac
+            script: package:mac:arm64
           - os: ubuntu-latest
             arch: x64
             script: package:linux
@@ -43,8 +44,12 @@ jobs:
         run: npm run package:win64
 
       - name: Build macOS
-        if: matrix.os == 'macos-latest'
-        run: npm run package:mac
+        if: matrix.os == 'macos-latest' && matrix.arch == 'x64'
+        run: npm run package:mac:x64
+        
+      - name: Build macOS ARM
+        if: matrix.os == 'macos-latest' && matrix.arch == 'arm64'
+        run: npm run package:mac:arm64
 
       - name: Build Linux
         if: matrix.os == 'ubuntu-latest'
