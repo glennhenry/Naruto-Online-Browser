@@ -4,31 +4,36 @@ const {
   Menu,
   MenuItem,
   session,
-  dialog
+  dialog,
 } = require("electron");
 const path = require("path");
 
 let pluginName;
+
 switch (process.platform) {
   case "win32":
     pluginName =
       process.arch === "x64"
-        ? "plugins/pepflashplayer64.dll"
-        : "plugins/pepflashplayer32.dll";
+        ? "pepflashplayer64.dll"
+        : "pepflashplayer32.dll";
     break;
   case "darwin":
-    pluginName = "plugins/PepperFlashPlayer.plugin";
+    pluginName = "PepperFlashPlayer.plugin";
     break;
   case "linux":
-    pluginName = "plugins/libpepflashplayer.so";
+    pluginName = "libpepflashplayer.so";
+    app.commandLine.appendSwitch("no-sandbox");
     break;
 }
 
+const isPackaged = app.isPackaged;
+
+const pluginPath = isPackaged
+  ? path.join(process.resourcesPath, pluginName)
+  : path.join(__dirname, pluginName);
+
 if (pluginName) {
-  app.commandLine.appendSwitch(
-    "ppapi-flash-path",
-    path.join(__dirname, pluginName)
-  );
+  app.commandLine.appendSwitch("ppapi-flash-path", pluginPath);
   app.commandLine.appendSwitch("ppapi-flash-version", "32.0.0.465");
 }
 
@@ -36,7 +41,7 @@ let windows = [];
 
 function createWindow(startUrl, isMain = false) {
   const win = new BrowserWindow({
-    icon: "resources/logo.png",
+    icon: "resources/logo.ico",
     width: 1400,
     height: 800,
     title: "Naruto Online Browser",
