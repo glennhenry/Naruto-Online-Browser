@@ -34,3 +34,5 @@ Based on an old [Electron](https://www.electronjs.org/) build (v11.5) which uses
 - Lightweight: It only loads the Naruto Online webpage.
 - Mute: You can mute the game per-window.
 - DevTools: Developer console is enabled with `Ctrl/Cmd+I` (for debugging or HTTP capture)
+
+Note: You can find the app cache and data in `C:\Users\<username>\AppData\Roaming\naruto-online-browser` (Windows).
