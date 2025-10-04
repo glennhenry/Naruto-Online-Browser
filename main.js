@@ -192,8 +192,8 @@ function initializeBrowserMenu() {
           click: () => clearHTTPCache(),
         },
         {
-          label: "Clear Storage Data (e.g., cookie, local storage, indexed DB; typically the game do not use many storage) (THIS WILL REFRESH THE BROWSER!)",
-          click: () => clearAllCache(),
+          label: "Clear Storage Data (e.g., cookie, local storage; typically the game do not use many storage) (THIS WILL REFRESH THE BROWSER!)",
+          click: () => clearStorageData(),
         },
       ],
     },
