@@ -5,6 +5,7 @@ const {
   MenuItem,
   session,
   dialog,
+  ipcMain,
 } = require("electron");
 const path = require("path");
 
@@ -104,7 +105,7 @@ let mainWindow;
 function createMainWindow() {
   mainWindow = createWindow(
     "https://naruto.narutowebgame.com/serverlist",
-    true
+    true,
   );
 
   contextMenu = new Menu();
@@ -157,6 +158,10 @@ function initializeBrowserMenu() {
       label: "View",
       submenu: [
         {
+          label: "Open URL",
+          click: () => openUrlPrompt(),
+        },
+        {
           label: "Force Exit",
           click(_, focusedWindow) {
             if (focusedWindow) app.exit();
@@ -188,11 +193,11 @@ function initializeBrowserMenu() {
       label: "Clean",
       submenu: [
         {
-          label: "Clear HTTP Cache (you will re-download game resources like images and animation)",
+          label: "Clear HTTP Cache",
           click: () => clearHTTPCache(),
         },
         {
-          label: "Clear Storage Data (e.g., cookie, local storage; typically the game do not use many storage) (THIS WILL REFRESH THE BROWSER!)",
+          label: "Clear Storage Data (THIS WILL REFRESH THE BROWSER!)",
           click: () => clearStorageData(),
         },
       ],
@@ -254,6 +259,43 @@ function initializeBrowserMenu() {
           ? focused.webContents.isAudioMuted()
           : false;
     });
+  });
+}
+
+function openUrlPrompt() {
+  const promptWin = new BrowserWindow({
+    width: 300,
+    height: 150,
+    resizable: false,
+    alwaysOnTop: true,
+    frame: false,
+    modal: true,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+  });
+
+  const html = `<style>body{font-family:sans-serif;margin:12px}input{width:100%;padding:8px;font-size:14px;margin-bottom:12px}.btn-row{display:flex;justify-content:flex-end;gap:8px}</style><h3 style="margin-top:0">Enter URL</h3><input id="url" placeholder="https://example.com" value="https://example.com"><div class="btn-row"><button onclick="closeWin()">Cancel</button><button onclick="submit()">OK</button></div><script>const { ipcRenderer } = require("electron");
+
+  function submit() {
+    ipcRenderer.send("url-entered", document.getElementById("url").value);
+    window.close();
+  }
+
+  function closeWin() {
+    window.close();
+  }</script>`;
+
+  // Load as a data URL
+  promptWin.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(html));
+
+  // Close the window when data is received
+  ipcMain.once("url-entered", (_event, url) => {
+    console.log("Entered:", `'${url}'`);
+    promptWin.close();
+
+    createWindow(url);
   });
 }
 
