@@ -22,17 +22,23 @@ It's intended to be the “last resort” solution to play Naruto Online if noth
 
 Based on an old [Electron](https://www.electronjs.org/) build (v11.5) which uses Chromium v87.0.4280.141. It works similar to the official mini client (both based on Chromium) and the [FlashBrowser](https://github.com/radubirsan/FlashBrowser) (which uses Electron too).
 
+### Configs
+
+There are some available configurations via `config.json` file:
+
+- `startUrl`: Override the initial webpage that the browser will at startup. Default is `https://naruto.narutowebgame.com/en/serverlist` which is the Naruto Online server list.
+- `warnBeforeClose`: Default value is `true` — this will warn the user when the main window is closed. The value `false` removes this warning.
+
 ### Limitations
 
 - Security risk: Since it uses an outdated browser version, vulnerabilities may exist. Risks are reduced if you only use it for Naruto Online. In the Linux platform, it uses `--no-sandbox`.
 - Limited features: It doesn't have features like bookmark, extensions, multi tabs (only multi windows), and other advanced browser features.
 - Doesn't save account: You need to enter account every time you open the app.
-- Doesn't support multiple account: You will need to login-logout for each different account you use.
+- Doesn't support multiple account: You will need to login-logout for each different account you use or open multiple browsers.
 
 ### Features
 
 - Lightweight: It only loads the Naruto Online webpage.
 - Mute: You can mute the game per-window.
-- DevTools: Developer console is enabled with `Ctrl/Cmd+I` (for debugging or HTTP capture)
 
 Note: You can find the app cache and data in `C:\Users\<username>\AppData\Roaming\naruto-online-browser` (Windows).

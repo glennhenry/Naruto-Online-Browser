@@ -8,15 +8,14 @@ const {
   ipcMain,
 } = require("electron");
 const path = require("path");
+const fs = require("fs");
 
 let pluginName;
 
 switch (process.platform) {
   case "win32":
     pluginName =
-      process.arch === "x64"
-        ? "pepflashplayer64.dll"
-        : "pepflashplayer32.dll";
+      process.arch === "x64" ? "pepflashplayer64.dll" : "pepflashplayer32.dll";
     break;
   case "darwin":
     pluginName = "PepperFlashPlayer.plugin";
@@ -39,7 +38,63 @@ const pluginPath = path.join(pluginDir, pluginName);
 
 if (pluginName) {
   app.commandLine.appendSwitch("ppapi-flash-path", pluginPath);
-  app.commandLine.appendSwitch("ppapi-flash-version", "32.0.0.465");
+  app.commandLine.appendSwitch("ppapi-flash-version", "32.0.0.363");
+}
+
+const SERVER_LIST_URL = "https://naruto.narutowebgame.com/en/serverlist";
+let data = {};
+
+app.on("ready", () => {
+  try {
+    if (fs.existsSync("config.json")) {
+      const file = fs.readFileSync("config.json");
+      data = JSON.parse(file);
+      console.log(data);
+    }
+  } catch (error) {
+    console.error("Fail to read config.json: ", error.message);
+  }
+
+  runBrowserApp();
+
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) runBrowserApp();
+  });
+});
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
+});
+
+let totalRetries = new Map();
+let mainWindow;
+
+const runBrowserApp = () => {
+  createMainWindow();
+  initializeBrowserMenu(mainWindow);
+
+  mainWindow.webContents.on("did-fail-load", () => {
+    const errorHTML = `
+<html><body style="background-color:#d4c8b8;color:#3b3732;display:flex;justify-content:center;align-items:center;height:100vh;margin:0"><div style="text-align:center;font-family:Arial,sans-serif"><h1>Sorry, it seems like the webpage failed to load. Try re-open the browser.</h1></div></body></html>
+        `;
+    mainWindow.loadURL(
+      "data:text/html;charset=utf-8," + encodeURIComponent(errorHTML),
+    );
+    mainWindow.show();
+  });
+};
+
+function createMainWindow() {
+  const url = data.startUrl ?? SERVER_LIST_URL;
+  mainWindow = createWindow(url, true);
+
+  contextMenu = new Menu();
+  contextMenu.append(new MenuItem({ label: "Copy", role: "copy" }));
+  contextMenu.append(new MenuItem({ label: "Paste", role: "paste" }));
+
+  mainWindow.webContents.on("context-menu", (_, params) => {
+    contextMenu.popup({ window: mainWindow, x: params.x, y: params.y });
+  });
 }
 
 let windows = [];
@@ -66,30 +121,43 @@ function createWindow(startUrl, isMain = false) {
     createWindow(url, false);
   });
 
+  installAutoRetry(win);
+
   win.on("close", (event) => {
     if (isMain) {
       event.preventDefault();
-      dialog
-        .showMessageBox(win, {
-          type: "question",
-          buttons: ["Cancel", "Exit"],
-          defaultId: 0,
-          cancelId: 0,
-          title: "Confirm Exit",
-          message: "Are you sure you want to exit the browser?",
-          detail: "WARNING: All open Naruto Online windows will be closed.",
-        })
-        .then((result) => {
-          if (result.response === 1) {
-            windows.forEach((w) => {
-              if (w !== win && !w.isDestroyed()) w.destroy();
-            });
-            windows = [];
-
-            win.removeAllListeners("close");
-            win.close();
-          }
-        });
+      if (data.warnBeforeClose == null || data.warnBeforeClose == true) {
+        dialog
+          .showMessageBox(win, {
+            type: "question",
+            buttons: ["Cancel", "Exit"],
+            defaultId: 0,
+            cancelId: 0,
+            title: "Confirm Exit",
+            message: "Are you sure you want to exit the browser?",
+            detail: "WARNING: All open Naruto Online windows will be closed.",
+            checkboxLabel: "Do not ask me again",
+            checkboxChecked: false,
+          })
+          .then((result) => {
+            if (result.response === 1) {
+              if (result.checkboxChecked) {
+                data.warnBeforeClose = false;
+                try {
+                  fs.writeFileSync(
+                    "config.json",
+                    JSON.stringify(data, null, 2),
+                  );
+                } catch (error) {
+                  console.error("Write config.json error: ", error.message);
+                }
+              }
+              closeAllWindows();
+            }
+          });
+      } else {
+        closeAllWindows();
+      }
     } else {
       windows = windows.filter((w) => w !== win);
       win.destroy();
@@ -100,55 +168,39 @@ function createWindow(startUrl, isMain = false) {
   return win;
 }
 
-let mainWindow;
-
-function createMainWindow() {
-  mainWindow = createWindow(
-    "https://naruto.narutowebgame.com/serverlist",
-    true,
-  );
-
-  contextMenu = new Menu();
-  contextMenu.append(new MenuItem({ label: "Copy", role: "copy" }));
-  contextMenu.append(new MenuItem({ label: "Paste", role: "paste" }));
-
-  mainWindow.webContents.on("context-menu", (_, params) => {
-    contextMenu.popup({ window: mainWindow, x: params.x, y: params.y });
+function closeAllWindows() {
+  windows.forEach((w) => {
+    if (w !== mainWindow && !w.isDestroyed()) w.destroy();
   });
+  windows = [];
+
+  mainWindow.removeAllListeners("close");
+  mainWindow.close();
 }
 
-const runBrowserApp = () => {
-  createMainWindow();
-  initializeBrowserMenu(mainWindow);
-
-  mainWindow.webContents.on("did-fail-load", () => {
-    const errorHTML = `
-            <html>
-            <body style="background-color: #d4c8b8; color: #3b3732; display:flex; justify-content:center; align-items:center; height:100vh; margin:0;">
-                <div style="text-align:center; font-family: Arial, sans-serif;">
-                    <h1>Sorry, it seems like the webpage failed to load.</h1>
-                </div>
-            </body>
-            </html>
+function installAutoRetry(window) {
+  window.webContents.on(
+    "did-navigate",
+    (event, url, httpResponseCode, httpStatusText) => {
+      if (httpResponseCode == 403) {
+        if (window && !window.isDestroyed()) {
+          if (totalRetries.getOrInsert(window, 0) > 5) {
+            const errorHTML = `
+<html><head><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';"></head><body style="background-color:#d4c8b8;color:#3b3732;display:flex;justify-content:center;align-items:center;height:100vh;margin:0"><div style="text-align:center;font-family:Arial,sans-serif"><h1>It seems like the website (probably Cloudflare) blocked our request for more than 5 times. Try going to serverlist from the 'View' menu or re-open the browser. HttpStatusText:${httpStatusText}</h1></div></body></html>
         `;
-    mainWindow.loadURL(
-      "data:text/html;charset=utf-8," + encodeURIComponent(errorHTML)
-    );
-    mainWindow.show();
-  });
-};
-
-app.on("ready", () => {
-  runBrowserApp();
-
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) runBrowserApp();
-  });
-});
-
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit();
-});
+            window.loadURL(
+              "data:text/html;charset=utf-8," + encodeURIComponent(errorHTML),
+            );
+            window.show();
+          } else {
+            window.webContents.reload();
+            totalRetries.set(window, totalRetries.getOrInsert(window, 0) + 1);
+          }
+        }
+      }
+    },
+  );
+}
 
 let appMenu;
 
@@ -162,9 +214,12 @@ function initializeBrowserMenu() {
           click: () => openUrlPrompt(),
         },
         {
-          label: "Force Exit",
-          click(_, focusedWindow) {
-            if (focusedWindow) app.exit();
+          label: "Go to serverlist",
+          click: (_, focusedWindow) => {
+            if (focusedWindow && !focusedWindow.isDestroyed()) {
+              focusedWindow.loadURL(SERVER_LIST_URL);
+              totalRetries = new Map();
+            }
           },
         },
         {
@@ -172,12 +227,25 @@ function initializeBrowserMenu() {
           accelerator: "CmdOrCtrl+R",
           click(_, focusedWindow) {
             if (focusedWindow && !focusedWindow.isDestroyed()) {
-              const url = focusedWindow.webContents.getURL();
-
-              focusedWindow.destroy();
-
-              createWindow(url);
+              focusedWindow.webContents.reload();
             }
+          },
+        },
+        {
+          label: "Force Reload",
+          click(_, focusedWindow) {
+            if (!focusedWindow || focusedWindow.isDestroyed()) return;
+            if (focusedWindow == mainWindow) {
+              focusedWindow.webContents.reload();
+              return;
+            }
+            const contents = focusedWindow.webContents;
+            if (contents.isCrashed()) {
+              contents.reload();
+              return;
+            }
+            contents.forcefullyCrashRenderer();
+            contents.reload();
           },
         },
         {
@@ -185,6 +253,12 @@ function initializeBrowserMenu() {
           accelerator: process.platform === "darwin" ? "Command+I" : "Ctrl+I",
           click(_, focusedWindow) {
             if (focusedWindow) focusedWindow.webContents.toggleDevTools();
+          },
+        },
+        {
+          label: "Force Exit",
+          click(_, focusedWindow) {
+            if (focusedWindow) app.exit();
           },
         },
       ],
@@ -264,7 +338,7 @@ function initializeBrowserMenu() {
 
 function openUrlPrompt() {
   const promptWin = new BrowserWindow({
-    width: 300,
+    width: 400,
     height: 150,
     resizable: false,
     alwaysOnTop: true,
@@ -276,16 +350,7 @@ function openUrlPrompt() {
     },
   });
 
-  const html = `<style>body{font-family:sans-serif;margin:12px}input{width:100%;padding:8px;font-size:14px;margin-bottom:12px}.btn-row{display:flex;justify-content:flex-end;gap:8px}</style><h3 style="margin-top:0">Enter URL</h3><input id="url" placeholder="https://example.com" value="https://example.com"><div class="btn-row"><button onclick="closeWin()">Cancel</button><button onclick="submit()">OK</button></div><script>const { ipcRenderer } = require("electron");
-
-  function submit() {
-    ipcRenderer.send("url-entered", document.getElementById("url").value);
-    window.close();
-  }
-
-  function closeWin() {
-    window.close();
-  }</script>`;
+  const html = `<style>body{font-family:sans-serif;margin:12px}input{width:100%;padding:8px;font-size:14px;margin-bottom:12px}.btn-row{display:flex;justify-content:flex-end;gap:8px}</style><h3 style="margin-top:0;font-size:14px;">Enter URL (must starts with http:// or https://)</h3><input id="url" placeholder="https://example.com" value="https://example.com"><div class="btn-row"><button onclick="closeWin()">Cancel</button><button onclick="submit()">OK</button></div><script>const{ipcRenderer:ipcRenderer}=require("electron");function submit(){ipcRenderer.send("url-entered",document.getElementById("url").value),window.close()}function closeWin(){window.close()}</script>`;
 
   // Load as a data URL
   promptWin.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(html));
@@ -295,7 +360,7 @@ function openUrlPrompt() {
     console.log("Entered:", `'${url}'`);
     promptWin.close();
 
-    createWindow(url);
+    createWindow(url, false);
   });
 }
 
@@ -317,4 +382,14 @@ function clearStorageData() {
   } catch (error) {
     console.error("Error clearing storage data:", error);
   }
+}
+
+if (!Map.prototype.getOrInsert) {
+  Map.prototype.getOrInsert = function (key, defaultValue) {
+    if (this.has(key)) {
+      return this.get(key);
+    }
+    this.set(key, defaultValue);
+    return defaultValue;
+  };
 }
