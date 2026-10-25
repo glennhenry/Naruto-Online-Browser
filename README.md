@@ -6,11 +6,11 @@ Unofficial solution to play Naruto Online in browser which works on most platfor
 
 ![gameplay](./2.png)
 
-- Download for Windows 32-bit: [120 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/1.0.1/Naruto.Online.Browser-windows-32bit.zip)
-- Download for Windows 64-bit: [128 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/1.0.1/Naruto.Online.Browser-windows-64bit.zip)
-- Download for macOS ARM 64: [281 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/1.0.1/Naruto.Online.Browser-macos-arm64.zip)
-- Download for macOS x64: [273 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/1.0.1/Naruto.Online.Browser-macos-x64.zip)
-- Download for Linux 64-bit: [120 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/1.0.1/Naruto.Online.Browser-linux-64bit.zip)
+- Download for Windows 32-bit: [120 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/1.0.3/Naruto.Online.Browser-windows-32bit.zip)
+- Download for Windows 64-bit: [128 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/1.0.3/Naruto.Online.Browser-windows-64bit.zip)
+- Download for macOS ARM 64: [281 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/1.0.3/Naruto.Online.Browser-macos-arm64.zip)
+- Download for macOS x64: [273 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/1.0.3/Naruto.Online.Browser-macos-x64.zip)
+- Download for Linux 64-bit: [114 MB](https://github.com/glennhenry/Naruto-Online-Browser/releases/download/1.0.3/Naruto.Online.Browser-linux-64bit.zip)
 
 The app is minimal wrapper around an older Chromium build that still supports Flash content. It is not a full browser — its only purpose is to open and run the Naruto Online webpage.
 
@@ -28,6 +28,8 @@ There are some available configurations via `config.json` file:
 
 - `startUrl`: Override the initial webpage that the browser will at startup. Default is `https://naruto.narutowebgame.com/en/serverlist` which is the Naruto Online server list.
 - `warnBeforeClose`: Default value is `true` — this will warn the user when the main window is closed. The value `false` removes this warning.
+
+This file is provided in the ZIP download, and will be created for you if it's absent. The location of `config.json` file is right next to the executable in Windows, and similarly on Linux. However for MacOS, it's placed in `Naruto Online Browser.app/Contents/MacOS` — and I'm not sure if this is correct.
 
 ### Limitations
 
